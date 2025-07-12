@@ -356,6 +356,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   out_contour = mxGetPr(plhs[2]);
   
   /* Perform SLICSuperpixel. */
+  /* 
+     待修改：
+     1. 参考python版本的init_clusters、reset_pixels、get_gradient、move_clusters的相关逻辑，在xxx代码中进行实现
+  */
   SLICSP(in_CX,in_CY,in_CL,in_CA,in_CB,SeedsNum,in_L,in_A,in_B,iWidth,iHeight,*STEP,*M,out_labels);
   LabelConnectivity(out_labels,iWidth,iHeight,out_enlabels,SuperpixelNum,*K); // change "SUPSZ>>2" to 20
   EnforceConnectivity(in_L,in_A,in_B,*M,*STEP,out_enlabels,iWidth,iHeight);  // add 2-stage EC. 
