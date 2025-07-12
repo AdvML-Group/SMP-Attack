@@ -358,7 +358,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   /* Perform SLICSuperpixel. */
   /* 
      待修改：
-     1. 参考python版本的init_clusters、reset_pixels、get_gradient、move_clusters的相关逻辑，在xxx代码中进行实现
+     1. 参考python版本的init_clusters、reset_pixels、get_gradient、move_clusters的相关逻辑，在attack_use_c.py代码中超像素中心点初始化部分进行对应实现。
+     2. SLICSP删除labelConnectivity、EnforceConnectivity函数，和Python版本进行匹配。
+     3. 需要验证C++获取的数据与Python是完全一致的。
+     4. 最后需要将超像素代码和攻击代码进行拆分，超像素代码应该独立为一个py文件，攻击attack代码调用该文件的函数。
   */
   SLICSP(in_CX,in_CY,in_CL,in_CA,in_CB,SeedsNum,in_L,in_A,in_B,iWidth,iHeight,*STEP,*M,out_labels);
   LabelConnectivity(out_labels,iWidth,iHeight,out_enlabels,SuperpixelNum,*K); // change "SUPSZ>>2" to 20
