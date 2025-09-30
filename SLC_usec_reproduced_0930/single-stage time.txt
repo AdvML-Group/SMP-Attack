@@ -1,0 +1,13 @@
+# Time records for each image (in seconds):
+# Image 1: 14.1039 s
+# Image 2: 7.7931 s
+# Image 3: 7.5995 s
+# Image 4: 7.6483 s
+# Image 5: 8.3303 s
+# Image 6: 7.6624 s
+# Image 7: 7.6553 s
+# Image 8: 7.7328 s
+# Image 9: 7.8222 s
+# Image 10: 8.5067 s
+# Average time: 8.4855 s
+# Variance: 3.5930
