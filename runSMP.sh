@@ -1,0 +1,2 @@
+python attack_SMP.py --attack_method SMP --num_iter 1 --model_name vgg_16 --layer_name vgg_16/conv1/conv1_1/Relu --super_next_dir 9800_95,3500_95,1800_95,9800_100,3500_100,1800_100 --ens 60 --probb 0.7 --input_dir ./dataset/images/  --output_dir ./adv/vgg16/stage1_vgg16/
+python attack_SMP.py --attack_method SMP --num_iter 9 --model_name vgg_16 --layer_name vgg_16/conv3/conv3_3/Relu --super_next_dir 2000_40,1000_30,500_20,2000_50,1000_40,500_30 --ens 60 --probb 0.7 --input_dir ./adv/stage1_vgg16/  --output_dir ./adv/SMP_vgg16/
