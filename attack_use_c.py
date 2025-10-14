@@ -7,55 +7,71 @@ import numpy as np
 import tensorflow as tf
 import random
 from keras.utils import to_categorical
-#import time
 import utils
 import os
 import time
-#from scipy import misc
-#from scipy import ndimage
-#import PIL
 from PIL import Image
 from datetime import datetime
-import matplotlib.pyplot as plt
 #import io
-import ctypes
+import ctypes 
 import numpy as np
 from PIL import Image
-import matplotlib.pyplot as plt
-from skimage.color import rgb2lab
+from SLIC_init_v0929 import slic_segment
+# SLICSP_v0929.so
+# Time records for each image (in seconds):
+# Image 1: 22.8661 s
+# Image 2: 24.7527 s
+# Image 3: 21.2698 s
+# SLICSP_v0929_1.so
+# Time records for each image (in seconds):
+# Image 1: 15.6787 s
+# Image 2: 13.9518 s
+# Image 3: 11.7271 s
+# SLICSP_v0929_1.so  fabs改成平方
+# Time records for each image (in seconds):
+# Image 1: 11.4437 s
+# Image 2: 8.3816 s
+# Image 3: 8.0002 s
+# SLICSP_v0929_1.so  继续优化循环参数
+# Time records for each image (in seconds):
+# Image 1: 11.3067 s
+# Image 2: 8.0668 s
+# Image 3: 7.6914 s
+# SLICSP_v0929_1.so  继续优化循环参数
+# Time records for each image (in seconds):
+# Image 1: 14.1039 s
+# Image 2: 7.7931 s
+# Image 3: 7.5995 s
+# Image 4: 7.6483 s
+# Image 5: 8.3303 s
+# Image 6: 7.6624 s
+# Image 7: 7.6553 s
+# Image 8: 7.7328 s
+# Image 9: 7.8222 s
+# Image 10: 8.5067 s
+# Average time: 8.4855 s
+# Variance: 3.5930
+
+# SLICSP_v0929_2.so
+# Time records for each image (in seconds):
+# Image 1: 15.2541 s
+# Image 2: 12.1781 s
+# Image 3: 12.2181 s
+
+
+
 slim = tf.contrib.slim
-#python attack299.py --attack_method RPA --model_name inception_v3 --layer_name InceptionV3/InceptionV3/Mixed_5b/concat --ens 60 --probb 0.8 --amplification_factor 10 --gamma 0.5 --image_size 299 --image_resize 330 --output_dir ./adv/Inv3/pm0.8/super115_5_0.8_100.5/
-
-#python attack10.py --attack_method RPA --model_name...--layer_name ...--image_size 224 --image_resize 250 --ens 60 --probb 0.7 --amplification_factor 2.5 --gamma 0.5 --Pkern_size 3
-
-#python attack1.py --attack_method RPA --model_name inception_v3 --layer_name InceptionV3/InceptionV3/Mixed_5b/concat --image_size 299 --image_resize 330 --ens 60 --probb 0.7 --output_dir ./adv/Inv3/super521/
-
-#python attack1.py --attack_method RPA --model_name resnet_v1_152 --layer_name resnet_v1_152/block1/unit_3/bottleneck_v1/Relu --image_size 224 --image_resize 250 --ens 60 --probb 0.7 --output_dir ./adv/Res152/super521/
-
-#python attack1.py --attack_method RPA --model_name resnet_v1_50 --layer_name resnet_v1_50/block1/unit_3/bottleneck_v1/Relu --image_size 224 --image_resize 250 --ens 60 --probb 0.7 --output_dir ./adv/Res50/super521/
-
-#python attack1.py --attack_method RPA --model_name vgg_16 --layer_name vgg_16/conv3/conv3_3/Relu -image_size 224 --image_resize 250 --ens 60 --probb 0.7 --output_dir ./adv/vgg16/super115/
-
-# python attack1.py --model_name inception_v3 --attack_method FIA --layer_name InceptionV3/InceptionV3/Mixed_5b/concat --ens 60 --probb 0.7 --output_dir ./adv/newmixi2/
-# python attack1.py --model_name vgg_16 --attack_method RPA --layer_name vgg_16/conv3/conv3_3/Relu --ens 60 --probb 0.7 --output_dir ./adv/newmix/
-
-#python attack.py --model_name inception_v3 --attack_method RPA --layer_name InceptionV3/InceptionV3/Mixed_5b/concat --ens 60 --probb 0.7
-#--super_next_dir 1500_2 1000_3 500_5
-tf.flags.DEFINE_list("super_next_dir", ['1500_2', '1000_3', '500_5'], "List of directories for superpixel patches.")
+tf.flags.DEFINE_list("super_next_dir", ['2000_40','1000_30','500_20','2000_50','1000_40','500_30'], "List of directories for superpixel patches.")
 
 tf.flags.DEFINE_string('model_name', 'vgg_16', 'The Model used to generate adv')
-#tf.flags.DEFINE_string('model_name', 'inception_v3', 'The Model used to generate adv.')
 
 tf.flags.DEFINE_string('attack_method', 'RPA', 'The name of attack method.')
-# vgg_16/conv1/conv1_1/Relu  vgg_16/conv3/conv3_3/Relu
-tf.flags.DEFINE_string('layer_name', 'vgg_16/conv1/conv1_1/Relu', 'The layer to be attacked.')
-tf.flags.DEFINE_string('layer_name2', 'InceptionV3/InceptionV3/Mixed_5b/concat', 'The layer to be attacked.')
 
-# tf.flags.DEFINE_string('input_dir', './adv/time/timeours2it1/', 'Input directory with images.')
+tf.flags.DEFINE_string('layer_name', 'vgg_16/conv3/conv3_3/Relu', 'The layer to be attacked.')
+
 tf.flags.DEFINE_string('input_dir', './dataset/images/', 'Input directory with images.')
 
-
-tf.flags.DEFINE_string('output_dir', './adv/time/timeours2it1all/', 'Output directory with images.')
+tf.flags.DEFINE_string('output_dir', './adv/vgg16/usec_time/ours/', 'Output directory with images.')
 
 tf.flags.DEFINE_string('superpixels_dir', '224', 'superpixels directory with npy.')
 
@@ -69,14 +85,14 @@ tf.flags.DEFINE_integer('batch_size', 1, 'How many images process at one time.')
 
 tf.flags.DEFINE_float('momentum', 1.0, 'Momentum.')
 
-tf.flags.DEFINE_string('GPU_ID', '0', 'which GPU to use.')
+tf.flags.DEFINE_string('GPU_ID', '1', 'which GPU to use.')
 
 """parameter for DIM"""
-tf.flags.DEFINE_integer('image_size', 224, 'size of each input images.')       # RPA 299 330  FIA 224 250
+tf.flags.DEFINE_integer('image_size', 224, 'size of each input images.')      
 
 tf.flags.DEFINE_integer('image_resize', 250, 'size of each diverse images.')
 
-tf.flags.DEFINE_float('prob', 0.7, 'Probability of using diverse inputs.')      #FIA 0.7 RPA0.6
+tf.flags.DEFINE_float('prob', 0.7, 'Probability of using diverse inputs.')    
 
 """parameter for TIM"""
 tf.flags.DEFINE_integer('Tkern_size', 15, 'Kernel size of TIM.')
@@ -89,194 +105,14 @@ tf.flags.DEFINE_float('gamma', 0.5, 'The gamma parameter.')
 tf.flags.DEFINE_integer('Pkern_size', 3, 'Kernel size of PIM.')
 
 """parameter for FIA"""
-tf.flags.DEFINE_float('ens', 60, 'Number of random mask input.') #RPA60  FIA30
+tf.flags.DEFINE_float('ens', 60, 'Number of random mask input.') 
 
-tf.flags.DEFINE_float('probb', 0.7, 'keep probability = 1 - drop probability.')   #FIA0.9 RPA0.7
+tf.flags.DEFINE_float('probb', 0.7, 'keep probability = 1 - drop probability.')   
 
 FLAGS = tf.flags.FLAGS
 os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.GPU_ID
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
-# 加载共享库
-#g++ -shared -o libSLICSP.so SLICSP.cpp -fPIC
-slicsp_lib = ctypes.CDLL('./libSLICSP.so')
-
-# 定义函数参数类型
-slicsp_lib.SLICSP.argtypes = [
-    ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double),
-    ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double),
-    ctypes.POINTER(ctypes.c_double), ctypes.c_int,
-    ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double),
-    ctypes.POINTER(ctypes.c_double), ctypes.c_int, ctypes.c_int,
-    ctypes.c_double, ctypes.c_double, ctypes.POINTER(ctypes.c_double)
-]
-
-# 修改ctypes参数定义
-slicsp_lib.LabelConnectivity.argtypes = [
-    ctypes.POINTER(ctypes.c_double),  # labels
-    ctypes.c_int,                     # width 
-    ctypes.c_int,                     # height
-    ctypes.POINTER(ctypes.c_double),  # nlabels
-    ctypes.POINTER(ctypes.c_int),     # numlabels
-    ctypes.c_int                      # K
-]
-
-slicsp_lib.EnforceConnectivity.argtypes = [
-    ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double),
-    ctypes.POINTER(ctypes.c_double), ctypes.c_double, ctypes.c_double,
-    ctypes.POINTER(ctypes.c_double), ctypes.c_int, ctypes.c_int
-]
-
-    # Call C++ GenerateSuperpixelMask function
-slicsp_lib.GenerateSuperpixelMask.argtypes = [
-    ctypes.POINTER(ctypes.c_double),  # labels
-    ctypes.POINTER(ctypes.c_double),  # mask
-    ctypes.c_int,                     # width
-    ctypes.c_int,                     # height
-    ctypes.c_int,                     # batch_size
-    ctypes.c_double,                  # prob
-    ctypes.c_int                      # num_labels
-]
-
-def gen_random_initial_center(seedx, seedy, step, lab_img):
-    m, n, k = lab_img.shape
-    scale = 0.4
-
-    # Compute the Range of (X,Y): 90% of STEP
-    range_x = [int(np.floor(seedx - step * scale)), int(np.ceil(seedx + step * scale))]
-    range_y = [int(np.floor(seedy - step * scale)), int(np.ceil(seedy + step * scale))]
-
-    # Compute the randomized center
-    rand_seeds = np.random.rand(1)
-    x = range_x[0] + rand_seeds * (range_x[1] - range_x[0])
-    rand_seeds = np.random.rand(1)
-    y = range_y[0] + rand_seeds * (range_y[1] - range_y[0])
-    # set limitation: [2,2]~[m-1,n-1]
-    x = min(max(x, 2), m - 1)
-    y = min(max(y, 2), n - 1)
-
-    # Compute the vector [l,a,b] of randomized center (X,Y),
-    # with width of neighbourhood [7,7]
-
-    # set limitation: [1,1]~[m,n]
-    x_left = max(int(x - 3), 1)
-    y_left = max(int(y - 3), 1)
-    x_right = min(int(x + 3), m)
-    y_right = min(int(y + 3), n)
-
-    img_nb_l = lab_img[x_left:x_right, y_left:y_right, 0]
-    img_nb_a = lab_img[x_left:x_right, y_left:y_right, 1]
-    img_nb_b = lab_img[x_left:x_right, y_left:y_right, 2]
-
-    l = np.mean(img_nb_l)
-    a = np.mean(img_nb_a)
-    b = np.mean(img_nb_b)
-
-    return x, y, l, a, b
-
-def get_lab_xy_seeds(image, K, choice='NoRandom'):
-    lab_image = rgb2lab(image)
-    height, width, _ = lab_image.shape
-    superpixel_size = int(height * width / K)
-    step = int(np.sqrt(superpixel_size))
-    xstrips = int(height / step)
-    ystrips = int(width / step)
-    xerr = height - step * xstrips
-    yerr = width - step * ystrips
-    xerrperstrip = xerr / xstrips
-    yerrperstrip = yerr / ystrips
-    xoff = step // 2
-    yoff = step // 2
-
-    numseeds = xstrips * ystrips
-    CX = np.zeros(numseeds)
-    CY = np.zeros(numseeds)
-    CL = np.zeros(numseeds)
-    CA = np.zeros(numseeds)
-    CB = np.zeros(numseeds)
-
-    n = 0
-    for y in range(ystrips):
-        ye = int(y * yerrperstrip)
-        for x in range(xstrips):
-            xe = int(x * xerrperstrip)
-            seedx = int(x * step + xoff + xe)
-            seedy = int(y * step + yoff + ye)
-            if choice == 'Random':
-                CX[n], CY[n], CL[n], CA[n], CB[n] = gen_random_initial_center(seedx, seedy, step, lab_image)
-            else:
-                CX[n] = seedx
-                CY[n] = seedy
-                CL[n] = lab_image[seedx, seedy, 0]
-                CA[n] = lab_image[seedx, seedy, 1]
-                CB[n] = lab_image[seedx, seedy, 2]
-            n += 1
-    # plt.scatter(CX,CY,c='red',s=10)
-    # plt.title('center')
-    # plt.savefig('seed_centers.png')
-    # plt.close()
-    return CX, CY, CL, CA, CB, lab_image, step
-
-def slicsp_segmentation(image, n_seeds, cm):
-    CX, CY, CL, CA, CB, image_lab, step = get_lab_xy_seeds(image, n_seeds,"noRandom")
-    height, width = image_lab.shape[:2]
-    L, A, B = image_lab[:, :, 0], image_lab[:, :, 1], image_lab[:, :, 2]
-    CX -= 1
-    CY -= 1
-    labels = np.zeros(height * width, dtype=np.float64)
-
-    slicsp_lib.SLICSP(
-        CX.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-        CY.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-        CL.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-        CA.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-        CB.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-        n_seeds,
-        L.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-        A.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-        B.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-        width, height, step, cm, labels.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
-    )
-
-    nlabels = np.zeros(height * width, dtype=np.float64)
-    numlabels = ctypes.c_int(0)
-    slicsp_lib.LabelConnectivity(
-        labels.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-        width, height,
-        nlabels.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-        ctypes.byref(numlabels),
-        n_seeds
-    )
-
-
-    slicsp_lib.EnforceConnectivity(
-        L.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-        A.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-        B.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-        cm, step,
-        nlabels.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-        width,height
-    )
-
-
-    return nlabels.reshape(height, width), numlabels.value
-
-
-# def get_opt_layers(layer_name,layer_name2):
-#     """obtain the feature map of the target layer"""
-#     opt_operations = []
-#     opt_operations2 = []
-#     # shape=[FLAGS.batch_size,FLAGS.image_size,FLAGS.image_size,3]
-#     operations = tf.get_default_graph().get_operations()
-#     for op in operations:
-#         if layer_name == op.name:
-#             opt_operations.append(op.outputs[0])
-#             shape = op.outputs[0][:FLAGS.batch_size].shape
-#         elif layer_name2 == op.name:
-#             opt_operations2.append(op.outputs[0])
-#             shape2 = op.outputs[0][:FLAGS.batch_size].shape
-#             break
-#     return opt_operations,opt_operations2, shape, shape2
 
 
 def get_opt_layers(layer_name):
@@ -405,117 +241,14 @@ def input_diversity(input_tensor):
                                  method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
     return ret
 
-def patch_by_strides(img_shape, patch_size, prob):
-    X_mask = np.ones(img_shape)
-    N0, H0, W0, C0 = X_mask.shape
-    ph = H0 // patch_size[0]
-    pw = W0 // patch_size[1]
-    X = X_mask[:, :ph * patch_size[0], :pw * patch_size[1]]
-    N, H, W, C = X.shape
-    shape = (N, ph, pw, patch_size[0], patch_size[1], C)
-    strides = (X.strides[0], X.strides[1] * patch_size[0], X.strides[2] * patch_size[0], *X.strides[1:])
-    mask_patchs = np.lib.stride_tricks.as_strided(X, shape=shape, strides=strides)
-    mask_len = mask_patchs.shape[1] * mask_patchs.shape[2] * mask_patchs.shape[-1]
-    ran_num = int(mask_len * (1 - prob))
-    rand_list = np.random.choice(mask_len, ran_num, replace=False)
-    for i in range(mask_patchs.shape[1]):
-        for j in range(mask_patchs.shape[2]):
-            for k in range(mask_patchs.shape[-1]):
-                if i * mask_patchs.shape[2] * mask_patchs.shape[-1] + j * mask_patchs.shape[-1] + k in rand_list:
-                    mask_patchs[:, i, j, :, :, k] = np.random.uniform(0, 1,
-                                                                      (N, mask_patchs.shape[3], mask_patchs.shape[4]))
-    img2 = np.concatenate(mask_patchs, axis=0, )
-    img2 = np.concatenate(img2, axis=1)
-    img2 = np.concatenate(img2, axis=1)
-    img2 = img2.reshape((N, H, W, C))
-    X_mask[:, :ph * patch_size[0], :pw * patch_size[1]] = img2
-    return X_mask
 
-
-# def patch_superpixel(img_shape, num, super_dir, prob, super_d, images):
-#     super_params = super_dir.split("_")
-#     n_seeds = int(super_params[0])  # 超像素的数量
-#     cm = float(super_params[1])     # 超像素分割的紧凑性参数
-    
-#     # Get unique superpixels and num_labels
-#     super_pixels, num_labels = slicsp_segmentation(images[0], n_seeds, cm)
-
-#     # Create a tensor X_mask filled with ones 
-#     X_mask = np.ones(img_shape)
-    
-#     # Convert to correct format and pass num_labels to C++ function
-#     super_pixels = super_pixels.astype(np.float64)
-#     X_mask = X_mask.astype(np.float64)
-    
-#     slicsp_lib.GenerateSuperpixelMask(
-#         super_pixels.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-#         X_mask.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-#         img_shape[2],  # width
-#         img_shape[1],  # height  
-#         img_shape[0],  # batch_size
-#         prob,          # probability
-#         num_labels     # pass the num_labels we already have
-#     )
-    
-#     return np.ascontiguousarray(X_mask)
-
-
-def patch_superpixel(img_shape, num, super_dir, prob, super_d, images):
-    # Dictionary to store timing results
-    timing_results = {}
-    
-    # Time parameter parsing
-    t0 = time.time()
+def patch_superpixel(img_shape, super_dir, prob, images):
     super_params = super_dir.split("_")
-    n_seeds = int(super_params[0])
-    cm = float(super_params[1])
-    timing_results['parameter_parsing'] = time.time() - t0
-    
-    # Time superpixel segmentation
-    t0 = time.time()
-    super_pixels, num_labels = slicsp_segmentation(images[0], n_seeds, cm)
-    timing_results['segmentation'] = time.time() - t0
-    
-    # Time mask creation
-    t0 = time.time()
-    X_mask = np.ones(img_shape)
-    timing_results['mask_creation'] = time.time() - t0
-    
-    # Time data type conversion
-    t0 = time.time()
-    super_pixels = super_pixels.astype(np.float64)
-    X_mask = X_mask.astype(np.float64)
-    timing_results['type_conversion'] = time.time() - t0
-    
-    # Time GenerateSuperpixelMask call
-    t0 = time.time()
-    slicsp_lib.GenerateSuperpixelMask(
-        super_pixels.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-        X_mask.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
-        img_shape[2],
-        img_shape[1],
-        img_shape[0],
-        prob,
-        num_labels
-    )
-    timing_results['generate_mask'] = time.time() - t0
-    
-    # Time final array conversion
-    t0 = time.time()
-    result = np.ascontiguousarray(X_mask)
-    timing_results['final_conversion'] = time.time() - t0
-    
-    # Calculate total time
-    timing_results['total'] = sum(timing_results.values())
-    
-    # Print timing results
-    print("\nTiming Results:")
-    print("-" * 40)
-    for key, value in timing_results.items():
-        print(f"{key.replace('_', ' ').title():20s}: {value*1000:.2f} ms")
-    print("-" * 40)
-    
-    return result
+    K = int(super_params[0])
+    M = float(super_params[1])
+
+    super_pixels, num_labels, X_mask = slic_segment(images[0], K, M, prob)
+    return X_mask
 
 
 def setup_seed(rnd_seed):
@@ -529,7 +262,6 @@ T_kern = gkern(FLAGS.Tkern_size)
 
 
 def main(_):
-    #start_time = time.time()  # 记录程序开始运行的时间
     if FLAGS.model_name in ['vgg_16', 'vgg_19', 'resnet_v1_50', 'resnet_v1_152','mobilenet_v1']:
         eps = FLAGS.max_epsilon
         alpha = FLAGS.alpha
@@ -546,7 +278,6 @@ def main(_):
     batch_shape = [FLAGS.batch_size, FLAGS.image_size, FLAGS.image_size, 3]
     checkpoint_path = utils.checkpoint_paths[FLAGS.model_name]
     layer_name = FLAGS.layer_name
-    layer_name2 = FLAGS.layer_name2
     super_d=FLAGS.superpixels_dir
     super_dir=FLAGS.super_next_dir #
     
@@ -575,21 +306,10 @@ def main(_):
         if 'DI' in FLAGS.attack_method:
             logits, end_points = network_fn(input_diversity(x))
         else:
-            logits, end_points = network_fn(x)  #logits形状[batch_size, num_classes]
+            logits, end_points = network_fn(x)  
 
-        problity = tf.nn.softmax(logits, axis=1)
-        pred = tf.argmax(logits, axis=1)  #预测 一维张量
-        one_hot = tf.one_hot(pred, num_classes)  #将预测结果转化编码 ；num_classes 是分类的类别数目，即 one-hot 编码的长度
-
-        entropy_loss = tf.losses.softmax_cross_entropy(one_hot[:FLAGS.batch_size], logits[FLAGS.batch_size:])
-        #真实标签的 one-hot 编码；模型的预测结果；
-        # opt_operations,opt_operations2, shape,shape2 = get_opt_layers(layer_name,layer_name2)
         opt_operations, shape= get_opt_layers(layer_name)
         weights_ph = tf.placeholder(dtype=tf.float32, shape=shape)
-        # weights_ph2 = tf.placeholder(dtype=tf.float32, shape=shape2)
-
-        #opt_operationsm, shapem = get_opt_layers(layer_name)
-        #weights_phm = tf.placeholder(dtype=tf.float32, shape=shape)
 
         # select the loss function
         if 'FDA' in FLAGS.attack_method:
@@ -599,14 +319,11 @@ def main(_):
         elif 'FIA' in FLAGS.attack_method:
             weights_tensor = tf.gradients(logits * label_ph, opt_operations[0])[0]
             loss = get_fia_loss(opt_operations, weights_ph)
-        else:   #RPA方法的loss定义
+        else:   
             weights_tensor = tf.gradients(logits * label_ph, opt_operations[0])[0]
             loss = get_rpa_loss(opt_operations, weights_ph)
-            # weights_tensor2 = tf.gradients(logits * label_ph, opt_operations2[0])[0]
-            # loss2 = get_rpa_loss(opt_operations2, weights_ph2)
 
         gradient = tf.gradients(loss, adv_input)[0]
-        # gradient2 = tf.gradients(loss2, adv_input)[0]
 
         noise = gradient
         adv_input_update = adv_input
@@ -645,18 +362,17 @@ def main(_):
             count = 0
 
             for images, names, labels in utils.load_image(FLAGS.input_dir, FLAGS.image_size, FLAGS.batch_size):
-                start_time = time.time()  # 开始时间
+                # start_time = time.time()  # 开始时间
                 count += FLAGS.batch_size
-                #print(count)
                 if count % 100 == 0:
                     print("Generating:", count)
                 # if names[0] != '1.png':
                 #     continue
                 
                 # 检查是否是1-10.png的图片
-                current_img = int(names[0].split('.')[0])  # 获取图片编号
-                if current_img < 1 or current_img > 10:  # 只处理1-10.png
-                    continue
+                # current_img = int(names[0].split('.')[0])  # 获取图片编号
+                # if current_img < 1 or current_img > 10:  # 只处理1-10.png
+                #     continue
 
                 images_tmp = image_preprocessing_fn(np.copy(images))
                 if FLAGS.model_name in ['resnet_v1_50', 'resnet_v1_152', 'vgg_16', 'vgg_19']:
@@ -664,7 +380,6 @@ def main(_):
 
                 # obtain true label
                 labels = to_categorical(np.concatenate([labels, labels], axis=-1), num_classes)
-                # labels = sess.run(one_hot, feed_dict={ori_input: images_tmp, adv_input: images_tmp})
 
                 # add some noise to avoid F_{k}(x)-F_{k}(x')=0
                 if 'NRDM' in FLAGS.attack_method:
@@ -677,14 +392,6 @@ def main(_):
                 grad_np = np.zeros(shape=batch_shape)
                 amplification_np = np.zeros(shape=batch_shape)
                 weight_np = np.zeros(shape=shape)
-                # weight_np2 = np.zeros(shape=shape2)
-                #sess1=tf.Session()
-
-                #imageupdate = input_diversity(images)
-                #imageupdate = new_input_diversity(images)
-                #images_tmp3 = sess1.run(imageupdate)
-                #images_tmp3 = image_preprocessing_fn(np.copy(images_tmp3))
-
 
                 for i in range(num_iter):
                     all_weights_np = []
@@ -709,17 +416,17 @@ def main(_):
                                                                       batch_shape[3]))
                                 mask = np.where(mask1 == 1, 1, mask2)
                             else:
-                                super_idx = (l % len(super_dir)) - 1  # Adjust for 1-based index
-                                super_idx = super_idx % len(super_dir)  # Ensure within bounds of super_dir
+                                super_idx = (l % len(super_dir)) - 1  
+                                super_idx = super_idx % len(super_dir)  
                                 mask = patch_superpixel((batch_shape[0], batch_shape[1], batch_shape[2],
-                                                         batch_shape[3]), count, super_dir[super_idx], FLAGS.probb,super_d,images)
+                                                         batch_shape[3]), super_dir[super_idx], FLAGS.probb,images)
                             images_tmp2 = images * mask
                             images_tmp2 = image_preprocessing_fn(np.copy(images_tmp2))
 
                             w, feature = sess.run([weights_tensor, opt_operations[0]],
                                                   feed_dict={ori_input: images_tmp2, adv_input: images_tmp2,
                                                              label_ph: labels})
-                            weight_np = weight_np + w[:FLAGS.batch_size]#形状(1, 35, 35, 256)
+                            weight_np = weight_np + w[:FLAGS.batch_size]
                             
                         weight_np = -normalize(weight_np, 2)
                     elif i == 0 and 'FIA' in FLAGS.attack_method:
@@ -757,37 +464,23 @@ def main(_):
                 images_adv = inv_image_preprocessing_fn(images_adv)
                 
                 utils.save_image(images_adv, names, FLAGS.output_dir)
-                end_time = time.time()  # 记录每张图片的结束时间
-                time_records.append(end_time - start_time)  # 计算处理时间并添加到列表中
+    #             end_time = time.time()  # 记录每张图片的结束时间
+    #             time_records.append(end_time - start_time)  # 计算处理时间并添加到列表中
 
-                # # 打印图1和图2的处理时间
-                # if count == 1:
-                #     print(f"Time for Image 1: {end_time - start_time:.4f} seconds")
-                # elif count == 2:
-                #     print(f"Time for Image 2: {end_time - start_time:.4f} seconds")
-                # elif count == 3:
-                #     print(f"Time for Image 2: {end_time - start_time:.4f} seconds")
-                # elif count == 4:
-                #     print(f"Time for Image 2: {end_time - start_time:.4f} seconds")
 
-                # if count >= 4:  # 如果只需要处理前两张图片，可以在这里退出循环
-                #     break
-    # end_time = time.time()  # 记录程序结束运行的时间
-    # elapsed_time = end_time - start_time  # 计算运行时间
-    # print(f"程序运行时间：{elapsed_time:.2f} 秒")  # 输出运行时间
-    # 计算平均值和方差
-    average_time = np.mean(time_records)
-    variance_time = np.var(time_records)
+    # # 计算平均值和方差
+    # average_time = np.mean(time_records)
+    # variance_time = np.var(time_records)
 
-    # 将结果写入到文本文件中
-    output_file = os.path.join(FLAGS.output_dir, "time.txt")
-    with open(output_file, "a") as f:
-        f.write("Time records for each image (in seconds):\n")
-        for i, t in enumerate(time_records):
-            f.write(f"Image {i+1}: {t:.4f} s\n")
-        f.write(f"\nAverage time: {average_time:.4f} s\n")
-        f.write(f"Variance: {variance_time:.4f}\n")
+    # # 将结果写入到文本文件中
+    # output_file = os.path.join(FLAGS.output_dir, "time.txt")
+    # with open(output_file, "a") as f:
+    #     f.write("Time records for each image (in seconds):\n")
+    #     for i, t in enumerate(time_records):
+    #         f.write(f"Image {i+1}: {t:.4f} s\n")
+    #     f.write(f"\nAverage time: {average_time:.4f} s\n")
+    #     f.write(f"Variance: {variance_time:.4f}\n")
 
-    print(f"Time records saved to {output_file}")
+    # print(f"Time records saved to {output_file}")
 if __name__ == '__main__':
     tf.app.run()
