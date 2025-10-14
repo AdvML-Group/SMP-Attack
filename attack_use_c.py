@@ -9,7 +9,6 @@ import random
 from keras.utils import to_categorical
 import utils
 import os
-from datetime import datetime
 import numpy as np
 from skimage import io, color, transform
 from ctypes import cdll, c_double, POINTER, c_int, c_float
@@ -67,6 +66,7 @@ tf.flags.DEFINE_list("super_next_dir", ['2000_40','1000_30','500_20','2000_50','
 FLAGS = tf.flags.FLAGS
 os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.GPU_ID
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
 def get_opt_layers(layer_name):
     """obtain the feature map of the target layer"""
     opt_operations = []
@@ -79,7 +79,6 @@ def get_opt_layers(layer_name):
     return opt_operations, shape
 
 """the loss function for FDA"""
-
 
 def get_fda_loss(opt_operations):
     loss = 0
@@ -96,9 +95,7 @@ def get_fda_loss(opt_operations):
     loss = loss / len(opt_operations)
     return loss
 
-
 """the loss function for NRDM"""
-
 
 def get_nrdm_loss(opt_operations):
     loss = 0
@@ -109,9 +106,7 @@ def get_nrdm_loss(opt_operations):
     loss = loss / len(opt_operations)
     return loss
 
-
 """the loss function for FIA"""
-
 
 def get_fia_loss(opt_operations, weights):
     loss = 0
@@ -122,6 +117,8 @@ def get_fia_loss(opt_operations, weights):
         # loss += tf.reduce_sum((weights*tf.abs(adv_tensor-ori_tensor))) / tf.cast(tf.size(layer), tf.float32)
     loss = loss / len(opt_operations)
     return loss
+
+"""the loss function for SMP"""
 
 def get_smp_loss(opt_operations, weights):
     loss = 0
@@ -134,7 +131,6 @@ def get_smp_loss(opt_operations, weights):
     loss = loss / len(opt_operations)
     return loss
 
-
 def normalize(grad, opt=2):
     if opt == 0:
         nor_grad = grad
@@ -146,7 +142,6 @@ def normalize(grad, opt=2):
         nor_grad = grad / np.sqrt(square)
     return nor_grad
 
-
 def project_kern(kern_size):
     kern = np.ones((kern_size, kern_size), dtype=np.float32) / (kern_size ** 2 - 1)
     kern[kern_size // 2, kern_size // 2] = 0.0
@@ -155,12 +150,10 @@ def project_kern(kern_size):
     stack_kern = np.expand_dims(stack_kern, 3)
     return stack_kern, kern_size // 2
 
-
 def project_noise(x, stack_kern, kern_size):
     x = tf.pad(x, [[0, 0], [kern_size, kern_size], [kern_size, kern_size], [0, 0]], "CONSTANT")
     x = tf.nn.depthwise_conv2d(x, stack_kern, strides=[1, 1, 1, 1], padding='VALID')
     return x
-
 
 def gkern(kernlen=21, nsig=3):
     """Returns a 2D Gaussian kernel array."""
@@ -193,8 +186,7 @@ def input_diversity(input_tensor):
                                  method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
     return ret
 
-def slic_segment(image, K, M, prob, so_path="./SLICSP_v0929_1.so"):
-    # 支持 image 为路径或数组
+def slic_segment(image, K, M, prob, so_path="./SLICSP.so"):
     if isinstance(image, str):
         rgb = io.imread(image)
     else:
@@ -228,16 +220,13 @@ def patch_superpixel(img_shape, super_dir, prob, images):
     super_pixels, num_labels, X_mask = slic_segment(images[0], K, M, prob)
     return X_mask
 
-
 def setup_seed(rnd_seed):
     np.random.seed(rnd_seed)
     random.seed(rnd_seed)
     tf.set_random_seed(rnd_seed)
 
-
 P_kern, kern_size = project_kern(FLAGS.Pkern_size)
 T_kern = gkern(FLAGS.Tkern_size)
-
 
 def main(_):
     if FLAGS.model_name in ['vgg_16', 'vgg_19', 'resnet_v1_50', 'resnet_v1_152','mobilenet_v1']:
@@ -256,17 +245,8 @@ def main(_):
     batch_shape = [FLAGS.batch_size, FLAGS.image_size, FLAGS.image_size, 3]
     checkpoint_path = utils.checkpoint_paths[FLAGS.model_name]
     layer_name = FLAGS.layer_name
-    super_dir=FLAGS.super_next_dir #
-    
-    # 获取当前日期，格式为月日
-    current_date = datetime.now().strftime('%m%d')
+    super_dir=FLAGS.super_next_dir
 
-    # 创建子文件夹，如果不存在的话
-    subfolder_path = os.path.join("output", current_date)
-    if not os.path.exists(subfolder_path):
-        os.makedirs(subfolder_path)
-    # 初始化时间记录数组
-    time_records = []
     with tf.Graph().as_default():
         # Prepare graph
         ori_input = tf.placeholder(tf.float32, shape=batch_shape)
