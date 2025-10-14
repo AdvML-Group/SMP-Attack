@@ -9,69 +9,21 @@ import random
 from keras.utils import to_categorical
 import utils
 import os
-import time
-from PIL import Image
 from datetime import datetime
-#import io
-import ctypes 
 import numpy as np
-from PIL import Image
-from SLIC_init_v0929 import slic_segment
-# SLICSP_v0929.so
-# Time records for each image (in seconds):
-# Image 1: 22.8661 s
-# Image 2: 24.7527 s
-# Image 3: 21.2698 s
-# SLICSP_v0929_1.so
-# Time records for each image (in seconds):
-# Image 1: 15.6787 s
-# Image 2: 13.9518 s
-# Image 3: 11.7271 s
-# SLICSP_v0929_1.so  fabs改成平方
-# Time records for each image (in seconds):
-# Image 1: 11.4437 s
-# Image 2: 8.3816 s
-# Image 3: 8.0002 s
-# SLICSP_v0929_1.so  继续优化循环参数
-# Time records for each image (in seconds):
-# Image 1: 11.3067 s
-# Image 2: 8.0668 s
-# Image 3: 7.6914 s
-# SLICSP_v0929_1.so  继续优化循环参数
-# Time records for each image (in seconds):
-# Image 1: 14.1039 s
-# Image 2: 7.7931 s
-# Image 3: 7.5995 s
-# Image 4: 7.6483 s
-# Image 5: 8.3303 s
-# Image 6: 7.6624 s
-# Image 7: 7.6553 s
-# Image 8: 7.7328 s
-# Image 9: 7.8222 s
-# Image 10: 8.5067 s
-# Average time: 8.4855 s
-# Variance: 3.5930
-
-# SLICSP_v0929_2.so
-# Time records for each image (in seconds):
-# Image 1: 15.2541 s
-# Image 2: 12.1781 s
-# Image 3: 12.2181 s
-
-
+from skimage import io, color, transform
+from ctypes import cdll, c_double, POINTER, c_int, c_float
 
 slim = tf.contrib.slim
-tf.flags.DEFINE_list("super_next_dir", ['2000_40','1000_30','500_20','2000_50','1000_40','500_30'], "List of directories for superpixel patches.")
-
 tf.flags.DEFINE_string('model_name', 'vgg_16', 'The Model used to generate adv')
 
-tf.flags.DEFINE_string('attack_method', 'RPA', 'The name of attack method.')
+tf.flags.DEFINE_string('attack_method', 'SMP', 'The name of attack method.')
 
 tf.flags.DEFINE_string('layer_name', 'vgg_16/conv3/conv3_3/Relu', 'The layer to be attacked.')
 
 tf.flags.DEFINE_string('input_dir', './dataset/images/', 'Input directory with images.')
 
-tf.flags.DEFINE_string('output_dir', './adv/vgg16/usec_time/ours/', 'Output directory with images.')
+tf.flags.DEFINE_string('output_dir', './adv/vgg16/', 'Output directory with images.')
 
 tf.flags.DEFINE_string('superpixels_dir', '224', 'superpixels directory with npy.')
 
@@ -85,7 +37,7 @@ tf.flags.DEFINE_integer('batch_size', 1, 'How many images process at one time.')
 
 tf.flags.DEFINE_float('momentum', 1.0, 'Momentum.')
 
-tf.flags.DEFINE_string('GPU_ID', '1', 'which GPU to use.')
+tf.flags.DEFINE_string('GPU_ID', '0', 'which GPU to use.')
 
 """parameter for DIM"""
 tf.flags.DEFINE_integer('image_size', 224, 'size of each input images.')      
@@ -107,14 +59,14 @@ tf.flags.DEFINE_integer('Pkern_size', 3, 'Kernel size of PIM.')
 """parameter for FIA"""
 tf.flags.DEFINE_float('ens', 60, 'Number of random mask input.') 
 
-tf.flags.DEFINE_float('probb', 0.7, 'keep probability = 1 - drop probability.')   
+tf.flags.DEFINE_float('probb', 0.7, 'keep probability = 1 - drop probability.')
+
+"""parameter for SMP"""
+tf.flags.DEFINE_list("super_next_dir", ['2000_40','1000_30','500_20','2000_50','1000_40','500_30'], "List of directories for superpixel patches.")
 
 FLAGS = tf.flags.FLAGS
 os.environ["CUDA_VISIBLE_DEVICES"] = FLAGS.GPU_ID
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-
-
-
 def get_opt_layers(layer_name):
     """obtain the feature map of the target layer"""
     opt_operations = []
@@ -171,7 +123,7 @@ def get_fia_loss(opt_operations, weights):
     loss = loss / len(opt_operations)
     return loss
 
-def get_rpa_loss(opt_operations, weights):
+def get_smp_loss(opt_operations, weights):
     loss = 0
     for layer in opt_operations:
         ori_tensor = layer[:FLAGS.batch_size]
@@ -241,6 +193,32 @@ def input_diversity(input_tensor):
                                  method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
     return ret
 
+def slic_segment(image, K, M, prob, so_path="./SLICSP_v0929_1.so"):
+    # 支持 image 为路径或数组
+    if isinstance(image, str):
+        rgb = io.imread(image)
+    else:
+        rgb = image
+    rgb_resized = transform.resize(rgb, (224, 224), mode='reflect')
+    data = color.rgb2lab(rgb_resized)
+    image_height, image_width = data.shape[:2]
+    L = data[:,:,0].flatten()
+    A = data[:,:,1].flatten()
+    B = data[:,:,2].flatten()
+    labels = np.zeros(image_width * image_height, dtype=np.float64)
+    X_mask = np.ones((1, image_height, image_width, 3), dtype=np.float32)
+    lib = cdll.LoadLibrary(so_path)
+    L_ptr = L.ctypes.data_as(POINTER(c_double))
+    A_ptr = A.ctypes.data_as(POINTER(c_double))
+    B_ptr = B.ctypes.data_as(POINTER(c_double))
+    labels_ptr = labels.ctypes.data_as(POINTER(c_double))
+    X_mask_ptr = X_mask.ctypes.data_as(POINTER(c_float))
+    lib.SLICSP.argtypes = [POINTER(c_double), POINTER(c_double), POINTER(c_double),
+                          c_int, c_int, c_int, c_double, c_double, POINTER(c_double), POINTER(c_float)]
+    lib.SLICSP(L_ptr, A_ptr, B_ptr,
+               c_int(image_width), c_int(image_height),
+               c_int(K), c_double(M), c_double(prob), labels_ptr, X_mask_ptr)
+    return labels.reshape((image_height, image_width)), K, X_mask
 
 def patch_superpixel(img_shape, super_dir, prob, images):
     super_params = super_dir.split("_")
@@ -278,7 +256,6 @@ def main(_):
     batch_shape = [FLAGS.batch_size, FLAGS.image_size, FLAGS.image_size, 3]
     checkpoint_path = utils.checkpoint_paths[FLAGS.model_name]
     layer_name = FLAGS.layer_name
-    super_d=FLAGS.superpixels_dir
     super_dir=FLAGS.super_next_dir #
     
     # 获取当前日期，格式为月日
@@ -321,7 +298,7 @@ def main(_):
             loss = get_fia_loss(opt_operations, weights_ph)
         else:   
             weights_tensor = tf.gradients(logits * label_ph, opt_operations[0])[0]
-            loss = get_rpa_loss(opt_operations, weights_ph)
+            loss = get_smp_loss(opt_operations, weights_ph)
 
         gradient = tf.gradients(loss, adv_input)[0]
 
@@ -362,17 +339,9 @@ def main(_):
             count = 0
 
             for images, names, labels in utils.load_image(FLAGS.input_dir, FLAGS.image_size, FLAGS.batch_size):
-                # start_time = time.time()  # 开始时间
                 count += FLAGS.batch_size
                 if count % 100 == 0:
                     print("Generating:", count)
-                # if names[0] != '1.png':
-                #     continue
-                
-                # 检查是否是1-10.png的图片
-                # current_img = int(names[0].split('.')[0])  # 获取图片编号
-                # if current_img < 1 or current_img > 10:  # 只处理1-10.png
-                #     continue
 
                 images_tmp = image_preprocessing_fn(np.copy(images))
                 if FLAGS.model_name in ['resnet_v1_50', 'resnet_v1_152', 'vgg_16', 'vgg_19']:
@@ -394,9 +363,7 @@ def main(_):
                 weight_np = np.zeros(shape=shape)
 
                 for i in range(num_iter):
-                    all_weights_np = []
-                    update_weights_np = []
-                    if i == 0 and 'RPA' in FLAGS.attack_method:
+                    if i == 0 and 'SMP' in FLAGS.attack_method:
                         if FLAGS.ens == 0:
                             images_tmp2 = image_preprocessing_fn(np.copy(images))
                             w, feature = sess.run([weights_tensor, opt_operations[0]],
@@ -464,23 +431,6 @@ def main(_):
                 images_adv = inv_image_preprocessing_fn(images_adv)
                 
                 utils.save_image(images_adv, names, FLAGS.output_dir)
-    #             end_time = time.time()  # 记录每张图片的结束时间
-    #             time_records.append(end_time - start_time)  # 计算处理时间并添加到列表中
 
-
-    # # 计算平均值和方差
-    # average_time = np.mean(time_records)
-    # variance_time = np.var(time_records)
-
-    # # 将结果写入到文本文件中
-    # output_file = os.path.join(FLAGS.output_dir, "time.txt")
-    # with open(output_file, "a") as f:
-    #     f.write("Time records for each image (in seconds):\n")
-    #     for i, t in enumerate(time_records):
-    #         f.write(f"Image {i+1}: {t:.4f} s\n")
-    #     f.write(f"\nAverage time: {average_time:.4f} s\n")
-    #     f.write(f"Variance: {variance_time:.4f}\n")
-
-    # print(f"Time records saved to {output_file}")
 if __name__ == '__main__':
     tf.app.run()
