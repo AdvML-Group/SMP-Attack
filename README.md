@@ -1,6 +1,8 @@
 # SMP-Attack
 [**\[ICCV 2025\] "SMP-Attack: Boosting the Transferability of Feature Importance-based Adversarial Attack with Semantics-aware Multi-granularity Patchout", Wen Yang, Guodong Liu, Di Ming*.**]([https://github.com/advml-group](https://github.com/AdvML-Group/SMP-Attack)) 
 
+![fig2-new_00](E:\ICCV25camera ready\fig2-new_00.png)
+
 ## Requirements
 
 - Python 3.6.0
@@ -13,27 +15,29 @@
 
 ### Prepare pretrained models
 
+Download the pretrained checkpoints into `./models_tf` before running the code.
+
 - [Normlly trained models]( https://github.com/tensorflow/models/tree/master/research/slim)
 - [Adversarial trained models]( https://github.com/tensorflow/models/tree/archive/research/adv_imagenet_models)
-- [Visual transformers models](https://github.com/rwightman/pytorch-image-models)
+- [Vision transformers models](https://github.com/rwightman/pytorch-image-models)
 
 ### Running attacks
 
-​	`./runSMP.sh` : the implementation for SMP attack.
+​	Simply execute `./runSMP.sh` in the terminal to launch the SMP-Attack.
 
 ### Evaluate the success rate
 
-- Normlly trained models nad Adversarial trained models
+- Normlly trained models and Adversarial trained models.
 
   `python verify_cnns.py`
 
-- Visual transformers models
+- Vision transformers models.
 
   `python verify_vits.py`
 
 ## Acknowledgments
 
-​	Code refers to [FIA](https://github.com/hcguoO0/FIA), [RPA](https://github.com/alwaysfoggy/RPA)
+​	Code refers to [FIA](https://github.com/hcguoO0/FIA), [RPA](https://github.com/alwaysfoggy/RPA).
 
 ## Citation
 
