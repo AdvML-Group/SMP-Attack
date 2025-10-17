@@ -51,10 +51,10 @@ void SLICSP(double *L, double *A, double *B, int WIDTH, int HEIGHT,
                                 + (A[_hw1] - A[_hw2])
                                 + (B[_hw1] - B[_hw2]);
 
-                    // if (_h < 0 || _h >= HEIGHT - 1 || _w < 0 || _w >= WIDTH - 1) continue;
-                    // double grad = (L[_hw1] - L[_hw2])*(L[_hw1] - L[_hw2])
-                    //             + (A[_hw1] - A[_hw2])*(A[_hw1] - A[_hw2])
-                    //             + (B[_hw1] - B[_hw2])*(B[_hw1] - B[_hw2]);
+//                     if (_h < 0 || _h >= HEIGHT - 1 || _w < 0 || _w >= WIDTH - 1) continue;
+//                     double grad = (L[_hw1] - L[_hw2])*(L[_hw1] - L[_hw2])
+//                                 + (A[_hw1] - A[_hw2])*(A[_hw1] - A[_hw2])
+//                                 + (B[_hw1] - B[_hw2])*(B[_hw1] - B[_hw2]);
                 
                     if (grad < min_grad) {
                         min_grad = grad;
