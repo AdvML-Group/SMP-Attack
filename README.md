@@ -38,11 +38,12 @@
 ## Citing this work
 
 ```
-@inproceedings{SMP,
-  title={SMP-Attack: Boosting the Transferability of Feature Importance-based Adversarial Attack with Semantics-aware Multi-granularity Patchout},
-  author={Wen Yang and Guodong Liu and Di Ming},
-  booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},
-  year={2025},
-  pages={},
+@InProceedings{Yang_2025_ICCV,
+    author    = {Yang, Wen and Liu, Guodong and Ming, Di},
+    title     = {SMP-Attack: Boosting the Transferability of Feature Importance-based Adversarial Attack with Semantics-aware Multi-granularity Patchout},
+    booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+    month     = {October},
+    year      = {2025},
+    pages     = {4444-4454}
 }
 ```
