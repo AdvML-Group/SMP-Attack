@@ -31,7 +31,7 @@ Transfer-based attacks pose a significant security threat to deep neural network
 
 #### Running attacks
 
-Simply execute `./runSMP.sh` in the terminal to launch the SMP-Attack.
+ Simply execute `./runSMP.sh` in the terminal to launch the SMP-Attack.
 
 #### Evaluate the success rate
 
@@ -45,11 +45,11 @@ Simply execute `./runSMP.sh` in the terminal to launch the SMP-Attack.
 
 ## Acknowledgments
 
-Code refers to [FIA](https://github.com/hcguoO0/FIA), [RPA](https://github.com/alwaysfoggy/RPA).
+ Code refers to [FIA](https://github.com/hcguoO0/FIA), [RPA](https://github.com/alwaysfoggy/RPA).
 
 ## Citation
 
-If you find this work is useful in your research, please cite our paper:
+ If you find this work is useful in your research, please cite our paper:
 
 ```
 @InProceedings{Yang_2025_ICCV,
