@@ -1,6 +1,8 @@
 # SMP-Attack
 
-[**\[ICCV 2025\] "SMP-Attack: Boosting the Transferability of Feature Importance-based Adversarial Attack with Semantics-aware Multi-granularity Patchout", Wen Yang, Guodong Liu, Di Ming*.**]([https://github.com/advml-group](https://github.com/AdvML-Group/SMP-Attack)) 
+[[Paper](https://openaccess.thecvf.com/content/ICCV2025/papers/Yang_SMP-Attack_Boosting_the_Transferability_of_Feature_Importance-based_Adversarial_Attack_with_ICCV_2025_paper.pdf)] [[Supp]([https://openreview.net/pdf?id=sNz7tptCH6](https://openaccess.thecvf.com/content/ICCV2025/papers/Yang_SMP-Attack_Boosting_the_Transferability_of_Feature_Importance-based_Adversarial_Attack_with_ICCV_2025_paper.pdf))] [[Poster](https://drive.google.com/file/d/1wGvQEvVkAJseYPyJY5j3TEbqiWuhkiYX/view?usp=sharing)] [[Presentation](https://drive.google.com/file/d/1X5GE1ON2Fp02aCZiC-oKWczfvyDOtE80/view?usp=sharing)] [[Video](https://youtu.be/5p4LxrBjxV0)]
+The official implementation of [**\[ICCV 2025\] "SMP-Attack: Boosting the Transferability of Feature Importance-based Adversarial Attack with Semantics-aware Multi-granularity Patchout", Wen Yang, Guodong Liu, Di Ming*.**](https://openaccess.thecvf.com/content/ICCV2025/html/Yang_SMP-Attack_Boosting_the_Transferability_of_Feature_Importance-based_Adversarial_Attack_with_ICCV_2025_paper.html).
+
 
 ## Introduction
 
@@ -63,3 +65,4 @@ Transfer-based attacks pose a significant security threat to deep neural network
 }
 
 ```
+
