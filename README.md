@@ -50,13 +50,15 @@ Transfer-based attacks pose a significant security threat to deep neural network
 ## Acknowledgments
 
  Code refers to [FIA](https://github.com/hcguoO0/FIA), [RPA](https://github.com/alwaysfoggy/RPA).
+ 
+ We thanks the authors for sharing sincerely.
 
 ## Citation
 
  If you find this work is useful in your research, please cite our paper:
 
 ```
-@InProceedings{Yang_2025_ICCV,
+@InProceedings{SMP_Attack,
     author    = {Yang, Wen and Liu, Guodong and Ming, Di},
     title     = {SMP-Attack: Boosting the Transferability of Feature Importance-based Adversarial Attack with Semantics-aware Multi-granularity Patchout},
     booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
@@ -66,6 +68,13 @@ Transfer-based attacks pose a significant security threat to deep neural network
 }
 
 ```
+
+## Contact
+
+[Wen Yang](https://github.com/Winwina8/Winwina8.github.io/): [winwina8@126.com](mailto:winwina8@126.com)
+
+[Di Ming](https://midasdming.github.io/): [diming@cqut.edu.cn](mailto:diming@cqut.edu.cn)
+
 
 
 
