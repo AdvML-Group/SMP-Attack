@@ -35,7 +35,11 @@ Transfer-based attacks pose a significant security threat to deep neural network
 
 #### Running attacks
 
- Simply execute `./runSMP.sh` in the terminal to launch the SMP-Attack.
+- `./attack_SMP.py`: the code of the implementation for our proposed SMP-attack method.
+
+- `./cpp/SLICSP.cpp`: the code of the implementation for our proposed Semantics-aware Multi-granularity Patchout. Developed in C++ for speed optimization and compiled into `./SLICSP.so` as a callable shared library.
+
+- You also can use  `./runSMP.sh`  to get all our best results directly!
 
 #### Evaluate the success rate
 
@@ -50,7 +54,7 @@ Transfer-based attacks pose a significant security threat to deep neural network
 ## Acknowledgments
 
  Code refers to [FIA](https://github.com/hcguoO0/FIA), [RPA](https://github.com/alwaysfoggy/RPA).
- 
+
  We thanks the authors for sharing sincerely.
 
 ## Citation
