@@ -31,15 +31,15 @@ Transfer-based attacks pose a significant security threat to deep neural network
 - [Adversarial trained models]( https://github.com/tensorflow/models/tree/archive/research/adv_imagenet_models)
 - [Vision transformers models](https://github.com/rwightman/pytorch-image-models)
 
-2. We conduct experiments on the ImageNet-compatible dataset, comprising 1000 images, used in the NIPS 2017 adversarial competition. The image path is `./dataset/images`.
+2. We conduct experiments on the *ImageNet-compatible* dataset, comprising 1000 images, used in the NIPS 2017 adversarial competition. The image path is `./dataset/images`.
 
 #### Running attacks
 
-- `./attack_SMP.py`: TensorFlow implementation of our SMP-Attack method (main entry script).
+- `./attack_SMP.py`: TensorFlow implementation of our *SMP-Attack* method (main entry script).
 
-- `./cpp/SLICSP.cpp`: C++ core implementation of Semantics-aware Multi-granularity PatchOut, used to accelerate attack computations. Compile into a shared library (e.g., `SLICSP.so`) with the command `g++ SLICSP.cpp -fPIC -shared -o SLICSP.so` and call it from `attack_SMP.py`.
+- `./cpp/SLICSP.cpp`: C++ core implementation of *Semantics-aware Multi-granularity PatchOut*, used to accelerate attack computations. Compile into a shared library (e.g., `SLICSP.so`) with the command `g++ SLICSP.cpp -fPIC -shared -o SLICSP.so` and call it from `attack_SMP.py`.
 
-- `./runSMP.sh`: Execution script containing concrete parameter settings and execution modes (e.g., single-stage or multi-stage SMP-Attack). Edit this script to reproduce experiments or tune parameters.
+- `./runSMP.sh`: Execution script containing concrete parameter settings and execution modes (e.g., *single-stage or multi-stage SMP-Attack*). Edit this script to reproduce experiments or tune parameters.
 
 #### Evaluate the success rate
 
@@ -78,6 +78,7 @@ Transfer-based attacks pose a significant security threat to deep neural network
 [Wen Yang](https://github.com/Winwina8/Winwina8.github.io/): [winwina8@126.com](mailto:winwina8@126.com)
 
 [Di Ming (*Corresponding Author)](https://midasdming.github.io/): [diming@cqut.edu.cn](mailto:diming@cqut.edu.cn)
+
 
 
 
