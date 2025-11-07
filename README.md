@@ -35,11 +35,11 @@ Transfer-based attacks pose a significant security threat to deep neural network
 
 #### Running attacks
 
-- `./attack_SMP.py`: the code of the implementation for our proposed SMP-attack method.
+- `./attack_SMP.py`: TensorFlow implementation of our SMP-attack method (main entry script).
 
-- `./cpp/SLICSP.cpp`: the code of the implementation for our proposed Semantics-aware Multi-granularity Patchout. Developed in C++ for speed optimization and compiled into `./SLICSP.so` as a callable shared library.
+- `./cpp/SLICSP.cpp`: C++ core implementation of Semantics-aware Multi-granularity PatchOut, used to accelerate attack computations. Compiled into a shared library (e.g., SLICSP.so) and called from attack_SMP.py.
 
-- You also can use  `./runSMP.sh`  to get all our best results directly!
+- `./runSMP.sh`: Execution script containing concrete parameter settings and execution modes (e.g., single-stage or multi-stage attack). Edit this script to reproduce experiments or tune parameters.
 
 #### Evaluate the success rate
 
@@ -78,6 +78,7 @@ Transfer-based attacks pose a significant security threat to deep neural network
 [Wen Yang](https://github.com/Winwina8/Winwina8.github.io/): [winwina8@126.com](mailto:winwina8@126.com)
 
 [Di Ming](https://midasdming.github.io/): [diming@cqut.edu.cn](mailto:diming@cqut.edu.cn)
+
 
 
 
