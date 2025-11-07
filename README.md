@@ -77,7 +77,8 @@ Transfer-based attacks pose a significant security threat to deep neural network
 
 [Wen Yang](https://github.com/Winwina8/Winwina8.github.io/): [winwina8@126.com](mailto:winwina8@126.com)
 
-[Di Ming](https://midasdming.github.io/) (*Corresponding Author): [diming@cqut.edu.cn](mailto:diming@cqut.edu.cn)
+[Di Ming (*Corresponding Author)](https://midasdming.github.io/): [diming@cqut.edu.cn](mailto:diming@cqut.edu.cn)
+
 
 
 
